@@ -1,14 +1,9 @@
 #lang racket
-(define work-dir "/home/john/dev/jbert/aoc2021")
-;(current-directory work-dir)
+(require "aoc.rkt")
 
-(define day 2)
-;(define suffix "-test")
-(define suffix "")
-
-(define data-file (format "~a/data/day~a~a.txt" work-dir day suffix))
-;(displayln data-file)
-(define lines (file->lines data-file))
+(aoc-set-day 2)
+(aoc-set-test #f)
+(define lines (aoc-get-lines)
 
 ; horiz, depth as a cons pair
 (define pos (cons 0 0))
