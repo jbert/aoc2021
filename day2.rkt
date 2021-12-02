@@ -3,7 +3,7 @@
 
 (aoc-set-day 2)
 (aoc-set-test #f)
-(define lines (aoc-get-lines)
+(define lines (aoc-get-lines))
 
 ; horiz, depth as a cons pair
 (define pos (cons 0 0))
