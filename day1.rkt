@@ -1,15 +1,10 @@
 #lang racket
-(define work-dir "/home/john/dev/jbert/aoc2021")
-;(current-directory work-dir)
+(require "aoc.rkt")
 
-(define day 1)
-;(define suffix "-test")
-(define suffix "")
+(aoc-set-day 1)
+(aoc-set-test #f)
 
-(define data-file (format "~a/data/day~a~a.txt" work-dir day suffix))
-;(displayln data-file)
-(define lines (file->lines data-file))
-(define nums (map string->number lines))
+(define nums (aoc-get-nums))
 
 (define deltas (for/list ([a nums]
                           [b (rest nums)])
