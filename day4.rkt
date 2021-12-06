@@ -2,7 +2,7 @@
 (require "aoc.rkt")
 
 (aoc-set-day 4)
-(aoc-set-test #t)
+(aoc-set-test #f)
 
 (define lines (aoc-get-lines))
 (define the-number-order (map string->number (string-split (first lines) ",")))
@@ -17,7 +17,7 @@
       (cons (take (rest lines) board-size)
             (read-board-lines (skip-rest lines (add1 board-size))))))
 
-(struct board (rows num->pos rowcount colcount d1count d2count) #:transparent)
+(struct board (rows num->pos rowcount colcount d1count d2count called-nums) #:transparent)
 
 (define (on-d1 p)
   (= (car p) (cdr p)))
@@ -58,7 +58,8 @@
            (make-list board-size 0)
            (make-list board-size 0)
            0
-           0)))
+           0
+           '())))
     
 
 ;(define p (hash-ref (board-num->pos (first boards)) 45 #f))
@@ -74,18 +75,21 @@
             (add-count (rest counts) (- n 1)))))
 
 (define (board-process b num)
-  (let ([p (board-find b num)])
-    (if (equal? p #f)
-        b
-        (let ([j (cdr p)]
-              [i (car p)]
-              [d1inc (if (on-d1 p) 1 0)]
-              [d2inc (if (on-d2 p) 1 0)])
-          (struct-copy board b
-                       [rowcount (add-count (board-rowcount b) i)]
-                       [colcount (add-count (board-colcount b) j)]
-                       [d1count (+ (board-d1count b) d1inc)]
-                       [d2count (+ (board-d1count b) d2inc)])))))
+  (if (board-won b)
+      b
+      (let ([p (board-find b num)])
+        (if (equal? p #f)
+            b
+            (let ([j (cdr p)]
+                  [i (car p)]
+                  [d1inc (if (on-d1 p) 1 0)]
+                  [d2inc (if (on-d2 p) 1 0)])
+              (struct-copy board b
+                           [rowcount (add-count (board-rowcount b) i)]
+                           [colcount (add-count (board-colcount b) j)]
+                           [d1count (+ (board-d1count b) d1inc)]
+                           [d2count (+ (board-d1count b) d2inc)]
+                           [called-nums (cons num (board-called-nums b))]))))))
 
 (define (board-won b)
   (define (row-has-winner r)
@@ -110,6 +114,36 @@
 
 (define the-boards (map parse-board (read-board-lines (rest lines))))
 (define winning-board
-  (call-numbers the-boards the-number-order))
+  (first (call-numbers the-boards the-number-order)))
 
+(define (board-last-called b)
+  (first (board-called-nums b)))
+
+(define (board-not-called b)
+  (let* ([board-nums (list->set (hash-keys (board-num->pos b)))]
+         [called-nums (list->set (board-called-nums b))]
+         [uncalled-nums (set-subtract board-nums called-nums)])
+        (set->list uncalled-nums)))
+
+(define (board-score b)
+  (* (board-last-called b)
+     (apply + (board-not-called b))))
 (printf "Winning board ~a\n" winning-board)
+(printf "Board score ~a \n"  (board-score winning-board))
+
+; ---- part2 ----
+(define (call-numbers-p2 bs nums last-num)
+  (let* ([num-boards (length bs)]
+         [winners (filter board-won bs)]
+         [current-num (first nums)])
+    (if (< (length winners) num-boards)
+        (call-numbers-p2 (call-number bs current-num) (rest nums) current-num)
+        (filter (lambda (b)
+                  (= (board-last-called b) last-num))
+                winners))))
+
+(define winning-board-p2
+  (first (call-numbers-p2 the-boards the-number-order 0)))
+
+(printf "Winning board P2 ~a\n" winning-board-p2)
+(printf "Board score ~a \n"  (board-score winning-board-p2))
