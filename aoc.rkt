@@ -20,6 +20,8 @@
  grid-count
  
  count-inc
+ count-inc-foldl
+ count-add
  half-cartesian-product
  )
 
@@ -122,13 +124,23 @@
               (ls-diag-points ls)
               (error (format "ls [~a] not horiz, vert or diag" ls))))))
 
-;;; increment the n'th position of the list
-(define (count-inc counts n)
+
+;;; Add x to the nth position
+(define (count-add counts n x)
   (if (= n 0)
-      (cons (add1 (first counts))
+      (cons (+ x (first counts))
             (rest counts))
       (cons (first counts)
-            (count-inc (rest counts) (- n 1)))))
+            (count-add (rest counts) (- n 1) x))))
+
+
+;;; increment the n'th position of the list
+(define (count-inc counts n)
+  (count-add counts n 1))
+
+;;; foldl-friendly count-inc
+(define (count-inc-foldl n counts)
+  (count-inc counts n))
 
 (struct grid (width height cells) #:transparent)
 
