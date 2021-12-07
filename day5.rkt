@@ -39,3 +39,9 @@
 (define the-p1-diagram (diagram-apply-line-segs the-hv-line-segs the-diagram))
 (printf "Number of at-least-2s: ~a\n"
         (grid-count the-p1-diagram (lambda (v) (>= v 2))))
+
+; part2
+
+(define the-p2-diagram (diagram-apply-line-segs the-line-segs the-diagram))
+(printf "P2: Number of at-least-2s: ~a\n"
+        (grid-count the-p2-diagram (lambda (v) (>= v 2))))

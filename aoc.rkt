@@ -19,7 +19,9 @@
  grid-inc
  grid-count
  
- count-inc)
+ count-inc
+ half-cartesian-product
+ )
 
 
 (define day 0)
@@ -48,6 +50,14 @@
          [nums (map string->number bits)])
     (p (first nums) (second nums))))
 
+(define (p-add a b)
+  (p (+ (p-x a) (p-x b))
+     (+ (p-y a) (p-y b))))
+
+(define (p-sub a b)
+  (p (- (p-x a) (p-x b))
+     (- (p-y a) (p-y b))))
+
 ; ----------
 (struct ls (from to) #:transparent)
 
@@ -65,6 +75,11 @@
   (= (p-x (ls-from ls))
      (p-x (ls-to ls))))
 
+(define (ls-diag? ls)
+  (let* ([dp (p-sub (ls-to ls) (ls-from ls))])
+    (= (abs (p-x dp))
+       (abs (p-y dp)))))
+
 (define (ls-horiz-points ls)
   (let* ([y (p-y (ls-from ls))]
         [xs (list (p-x (ls-from ls)) (p-x (ls-to ls)))]
@@ -81,13 +96,31 @@
     (for/list ([y (in-range from-y (add1 to-y))])
       (p x y))))
 
+(define (ls-diag-points ls)
+  (define (helper f t)
+    (let* ([ylo (p-y f)]
+           [yhi (p-y t)]
+           [step (sgn (- yhi ylo))])
+      (for/list ([x (in-range (p-x f) (add1 (p-x t)))]
+                 [y (in-range ylo (+ yhi step) step)])
+            (p x y))))
+  (let ([f (ls-from ls)]
+        [t (ls-to ls)])
+    (if (< (p-x f) (p-x t))
+        (helper f t)
+        (helper t f))))
+    
+
+
   
 (define (ls-points ls)
   (if (ls-horiz? ls)
       (ls-horiz-points ls)
       (if (ls-vert? ls)
           (ls-vert-points ls)
-          (error (format "ls [~a] not horiz or vert" ls)))))
+          (if (ls-diag? ls)
+              (ls-diag-points ls)
+              (error (format "ls [~a] not horiz, vert or diag" ls))))))
 
 ;;; increment the n'th position of the list
 (define (count-inc counts n)
@@ -120,3 +153,13 @@
 
 ; --------------
 
+
+(define (half-cartesian-product l)
+  (printf "l is ~a\n" l)
+  (define (helper a l)
+    (map (lambda (b) (cons a b)) l))
+  (if (empty? l)
+      l
+      (append
+       (helper (first l) (rest l))
+       (half-cartesian-product (rest l)))))
