@@ -8,7 +8,10 @@
 
 (define (parse-line l)
   (define (parse-seqs s)
-    (map string->list (string-split s " ")))
+    (map (lambda (char-seq)
+           (map (lambda (c) (string->symbol (string c)))
+                char-seq))
+         (map string->list (string-split s " "))))
   (let* ([bits (string-split l " | ")])
     (list (parse-seqs (first bits))
           (parse-seqs (second bits)))))
@@ -24,3 +27,6 @@
 (printf "Number of 1478 output seqs: ~a\n"
         (let ([outputs (apply append (map second entries))])
           (length (filter is-1478? outputs))))
+
+
+; A mapping is a permutation of '(a b c d e f g)
