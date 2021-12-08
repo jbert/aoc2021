@@ -7,19 +7,20 @@
 (define lines (aoc-get-lines))
 
 (define (parse-line l)
-  (let* ([bits (string-split l " | ")]
-         [patterns (string-split (first bits) " ")]
-         [output (string-split (second bits) " ")])
-    (list patterns output)))
+  (define (parse-seqs s)
+    (map string->list (string-split s " ")))
+  (let* ([bits (string-split l " | ")])
+    (list (parse-seqs (first bits))
+          (parse-seqs (second bits)))))
 (define entries (map parse-line lines))
 
 (define (is-1478? seq)
-  (let ([l (string-length seq)])
+  (let ([l (length seq)])
     (or (= l 2) ; 1
         (= l 4) ; 4
         (= l 3) ; 7
         (= l 7)))) ; 8
 
 (printf "Number of 1478 output seqs: ~a\n"
-        (let ([outputs (flatten (map second entries))])
+        (let ([outputs (apply append (map second entries))])
           (length (filter is-1478? outputs))))
