@@ -7,6 +7,7 @@
 
  (struct-out p)
  p-parse
+ p-neighbours
  
  (struct-out ls)
  ls-parse
@@ -16,12 +17,21 @@
  
  (struct-out grid)
  grid-make
+ grid-new
  grid-inc
  grid-count
+ grid-neighbour-points
+ grid-neighbour-get
+ grid-within?
+ grid-get
+ grid-for-each
  
  count-inc
  count-inc-foldl
  count-add
+
+ list-nth
+ 
  half-cartesian-product
  )
 
@@ -59,6 +69,17 @@
 (define (p-sub a b)
   (p (- (p-x a) (p-x b))
      (- (p-y a) (p-y b))))
+
+(define p-north (p 0 -1))
+(define p-east (p 1 0))
+(define p-south (p 0 1))
+(define p-west (p -1 0))
+
+(define p-news (list p-north p-east p-west p-south))
+
+(define (p-neighbours p)
+  (map (lambda (x) (p-add p x))
+         p-news))
 
 ; ----------
 (struct ls (from to) #:transparent)
@@ -150,6 +171,11 @@
         (for/list ([i (in-range h)])
           (make-list w 0))))
 
+(define (grid-new cells)
+  (let* ([h (length cells)]
+         [w (length (first cells))])
+    (grid w h cells)))
+
 (define (grid-inc p g)
   (let ([new-cells (for/list ([row (grid-cells g)]
                               [j (in-range (grid-height g))])
@@ -158,16 +184,51 @@
                          row))])
     (struct-copy grid g [cells new-cells])))
 
+(define (grid-get g p)
+  (when (not (grid-within? g p))
+    (error (format "~a not within grid" p)))
+  (let ([row (list-nth (grid-cells g) (p-y p))])
+    (list-nth row (p-x p))))
+
 (define (grid-count g f)
   (apply + (for/list ([row (grid-cells g)])
              (count f row))))
-    
+
+(define (grid-within? g p)
+  (let ([x (p-x p)]
+        [y (p-y p)])
+    (and (>= x 0)
+         (>= y 0)
+         (< x (grid-width g))
+         (< y (grid-height g)))))
+
+(define (grid-neighbour-points g p)
+  (let ([neighbours (p-neighbours p)])
+    (filter (lambda (p) (grid-within? g p))
+            neighbours)))
+
+(define (grid-neighbour-get g p)
+  (map (lambda (x) (grid-get g x))
+       (grid-neighbour-points g p)))
+
+(define (grid-for-each g f)
+  (for/list ([row (grid-cells g)]
+             [y (in-range 0 (add1 (grid-height g)))])
+    (for/list ([v row]
+               [x (in-range 0 (add1 (grid-width g)))])
+      (f v (p x y)))))
+ 
 
 ; --------------
 
+(define (list-nth l n)
+  (if (empty? l)
+      l
+      (if (= n 0)
+          (first l)
+          (list-nth (rest l) (sub1 n)))))
 
 (define (half-cartesian-product l)
-  (printf "l is ~a\n" l)
   (define (helper a l)
     (map (lambda (b) (cons a b)) l))
   (if (empty? l)
