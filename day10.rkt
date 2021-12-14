@@ -22,14 +22,13 @@
                      lines))
 
 
-; Returns the open stack at end of line
-; or string on failure ("" for incomplete, incorrect closes for corrupt)
+; Returns:
+; - list of needed closing chars (empty if correct)
+; - or incorrect string on failure 
 (define (parse-progline-helper l stack)
   ;(printf "L ~a S ~a\n" l stack)
   (if (empty? l)
-      (if (empty? stack)
-          '()
-          "")
+      stack
       (let* ([c (first l)]
              [cw (hash-ref closes-with c "")])
         (if (equal? "" cw)
@@ -49,11 +48,44 @@
   (map parse-progline p))
 
 (define (syntax-error-score p)
-  (let* ([illegal-chars (filter (lambda (s) (not (equal? "" s)))
+  (let* ([illegal-chars (filter string?
                                 (parse-program p))]
          [scores (map (lambda (s) (hash-ref char-score s 0))
                       illegal-chars)])
     (apply + scores)))
 
-(printf "syntax error score ~a\n" (syntax-error-score program))                
-  
+(printf "syntax error score ~a\n" (syntax-error-score program))
+
+(define (incomplete-closers p)
+  (filter (lambda (x) (and (not (string? x))
+                           (not (empty? x))))
+          (parse-program p)))
+
+;(incomplete-closers program)
+
+(define autocomplete-score-value
+  (hash ")" 1
+        "]" 2
+        "}" 3
+        ">" 4))
+
+(define (autocomplete-score l)
+  (define (helper l s)
+    (if (empty? l)
+        s
+        (let ([value (hash-ref autocomplete-score-value (first l) #f)])
+          (helper (rest l)
+                  (+ (* 5 s)
+                     value)))))
+  (helper l 0))
+
+(define autocomplete-scores (map autocomplete-score
+                                (incomplete-closers program)))
+
+(printf "Middle AC score ~a\n"
+        (let* ([sorted-scores (sort autocomplete-scores <)]
+               [midpos (/ (sub1 (length sorted-scores)) 2)])
+          ;(printf "SS ~a\n" sorted-scores)
+          ;(printf "midpos ~a\n" midpos)
+          (list-nth sorted-scores midpos)))
+              
