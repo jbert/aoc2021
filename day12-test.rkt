@@ -34,4 +34,26 @@
                 ((a . d) (d . c) (c . b)))
               "Cross (four path)")
 
-;(define g6 (graph-make ("a-c" "a-d" "c-d"
+(define banned-tcs '(
+                     (()() "empty")
+                     ((a)() "visit one")
+                     ((a  b)() "one visit doesnt' ban any")
+                     ((a a)(a) "visit one twice bans it")
+                     ((A A)() "visit big twice bans nothing")
+                     ((a a b)(a b) "visit a twice bans b after 1")
+                     ((A A b)() "visit big twice doesn't bans b after 1")
+                     ((A A b b)(b) "visit big twice bans b after 2")
+                     ((A A b b a)(b a) "visit big twice bans b after 2 bans a after 1")
+                     ((start)(start) "visit start once")
+                     ))
+
+(define (banned-tc-run tc)
+  (let* ([pts (first tc)]
+         [expected (second tc)]
+         [s (third tc)]
+         [b (hash)]
+         [got (banned-set (foldl banned-record-visit b pts))])
+    (check-equal? got (list->set expected) s)))
+
+(for ([tc banned-tcs])
+  (banned-tc-run tc))
