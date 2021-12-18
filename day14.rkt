@@ -114,3 +114,14 @@
        [most (apply max vs)]
        [least (apply min vs)])
   (printf "Part 1: ~v\n" (- most least)))
+
+(define after-40 (run 40 the-template rules))
+
+(polymer-element-counts after-40)
+
+(let* ([vs (hash-values (polymer-element-counts after-40)
+)]
+       [most (apply max vs)]
+       [least (apply min vs)])
+  (printf "Part 2: ~v\n" (- most least)))
+
