@@ -16,11 +16,6 @@
   (let ([bits (map string->number (string-split l ","))])
     (p (first bits) (second bits))))
 (define coords (map parse-coord-line coord-lines))
-(define width (apply max (map p-x coords)))
-(define height (apply max (map p-y coords)))
-
-;(define zero-grid (grid-make width height))
-;(define the-grid (foldl grid-inc zero-grid (list (p 1 2) (p 3 4))))
 
 (struct paper-fold (horiz-line? value) #:transparent)
 (define (parse-fold-line l)
@@ -39,7 +34,6 @@
                  (- v dy))
               pt))
         (let ([dx (- (p-x pt) v)])
-          (printf "dx ~a\n" dx)
           (if (> dx 0)
               (p (- v dx)
                  (p-y pt))
@@ -53,3 +47,16 @@
 ;(apply-fold-to-coords-set (second paper-folds) coords)
 ;(apply-fold-to-coords-set (second paper-folds) (apply-fold-to-coords-set (first paper-folds) coords))
 (printf "Part 1: ~a\n" (set-count (apply-fold-to-coords-set (first paper-folds) coords)))
+
+(define (draw-coords cs)
+  (let* ([width (add1 (apply max (map p-x cs)))]
+         [height (add1 (apply max (map p-y cs)))]
+         [zero-grid (grid-make width height)]
+         [g (foldl grid-inc zero-grid cs)])
+    g))
+
+(define (apply-folds pfs cs)
+  (foldl apply-fold-to-coords-set cs pfs))
+
+(draw-coords (set->list (apply-folds paper-folds coords)))
+
