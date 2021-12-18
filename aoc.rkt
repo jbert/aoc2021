@@ -5,6 +5,8 @@
  aoc-set-day
  aoc-set-test
 
+ hash-key-add
+
  (struct-out p)
  p-parse
  p-neighbours
@@ -46,6 +48,10 @@
   (set! suffix (if p "-test" "")))
 
 (define work-dir "/home/john/dev/jbert/aoc2021")
+
+(define (hash-key-add h k v)
+  (let ([current (hash-ref h k 0)])
+    (hash-set h k (+ current v))))
 
 (define (aoc-get-lines)
   (let ([data-filename (format "~a/data/day~a~a.txt" work-dir day suffix)])
