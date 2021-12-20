@@ -32,7 +32,7 @@
     [("F") '(1 1 1 1)]
     [else (error (format "Unrecognised digit ~v\n" d))]))
     
-(define (hex->bitstr s)
+(define (hex->bs s)
   (apply append (map hexdigit->bits (map string (string->list s)))))
 (define (bs->number bs)
   (define (helper bs v)
@@ -137,7 +137,7 @@
 ;(define tt "00111000000000000110111101000101001010010001001000000000")
 ;(define ttbs (map string->number (map string (string->list tt))))
 ;(define tt "8A004A801A8002F478")
-;(define ttbs (hex->bitstr tt))
+;(define ttbs (hex->bs tt))
 ;(parse-packet ttbs)
 
 (define (version-sum pkt)
@@ -149,7 +149,7 @@
 (for ([tc test-cases])
   (let* ([s (first tc)]
          [e (second tc)]
-         [bs (hex->bitstr s)]
+         [bs (hex->bs s)]
          [pkt (parse-step-value (parse-packet bs))])
     (printf "~v -> ~v\n" s e)
     (printf "~v\n" pkt)
@@ -157,6 +157,35 @@
 
 
 (let* ([hexstr (first lines)]
-       [bs (hex->bitstr hexstr)]
+       [bs (hex->bs hexstr)]
        [pkt (parse-step-value (parse-packet bs))])
   (printf "Part 1: version sum ~v\n" (version-sum pkt)))
+
+(define (packet-evaluate pkt)
+  (let ([t (packet-type pkt)])
+    (if (= t 4)
+        (packet-contents pkt)
+        (let ([vs (map packet-evaluate (packet-contents pkt))])
+          (cond
+            [(= t 0) (apply + vs)]
+            [(= t 1) (apply * vs)]
+            [(= t 2) (apply min vs)]
+            [(= t 3) (apply max vs)]
+            [(= t 5) (if (apply > vs) 1 0)]
+            [(= t 6) (if (apply < vs) 1 0)]
+            [(= t 7) (if (apply = vs) 1 0)]
+            [else (error (format "Unknown type ~v" t))])))))
+
+(define (bs->packet bs)
+  (let ([ps (parse-packet bs)])
+    (parse-step-value ps)))
+
+(packet-evaluate (bs->packet (hex->bs "CE00C43D881120")))
+
+
+
+
+(let* ([hexstr (first lines)]
+       [bs (hex->bs hexstr)]
+       [pkt (parse-step-value (parse-packet bs))])
+  (printf "Part 2: packet value ~v\n" (packet-evaluate pkt)))
