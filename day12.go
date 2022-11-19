@@ -41,37 +41,82 @@ func (g Graph) String() string {
 	return b.String()
 }
 
-func (g Graph) CountPaths(from, to Vertex) int {
+type Visited struct {
+	count      map[Vertex]int
+	part       int
+	smallTwice bool
+}
+
+func NewVisited(part int) *Visited {
+	return &Visited{
+		count: make(map[Vertex]int),
+		part:  part,
+	}
+}
+
+func (vst *Visited) Copy() *Visited {
+	countCopy := make(map[Vertex]int)
+	for v, c := range vst.count {
+		countCopy[v] = c
+	}
+	vstCopy := Visited{
+		count:      countCopy,
+		part:       vst.part,
+		smallTwice: vst.smallTwice,
+	}
+	return &vstCopy
+}
+
+func (vst *Visited) Visit(v Vertex) {
+	vst.count[v]++
+	if v.IsSmall() && vst.count[v] == 2 {
+		vst.smallTwice = true
+	}
+}
+
+func (vst Visited) CanVisit(v Vertex) bool {
+	if v.IsSmall() {
+		if v != "start" && v != "end" && vst.part == 2 && !vst.smallTwice {
+			return true
+		}
+		return vst.count[v] == 0
+	}
+	return true
+}
+
+func (g Graph) CountPathsPart1(from, to Vertex) int {
 	if !g.IsVertex(from) || !g.IsVertex(to) {
 		panic(fmt.Sprintf("Internal error: [%s] or [%s] not a vertex", from, to))
 	}
-	visited := make(map[Vertex]int)
-	return g.countPaths(from, to, visited)
+
+	vst := NewVisited(1)
+
+	return g.countPaths(from, to, vst)
 }
 
-func (g Graph) countPaths(from, to Vertex, visited map[Vertex]int) int {
+func (g Graph) CountPathsPart2(from, to Vertex) int {
+	if !g.IsVertex(from) || !g.IsVertex(to) {
+		panic(fmt.Sprintf("Internal error: [%s] or [%s] not a vertex", from, to))
+	}
+
+	vst := NewVisited(2)
+
+	return g.countPaths(from, to, vst)
+}
+
+func (g Graph) countPaths(from, to Vertex, vst *Visited) int {
 	if from == to {
 		return 1
 	}
-	visited[from]++
+
+	vst.Visit(from)
+
 	neighbours := g.Neighbours(from)
-
-	canVisit := func(v Vertex) bool {
-		if v.IsSmall() {
-			return visited[v] == 0
-		}
-		return true
-	}
-
-	neighbours = Filter(canVisit, neighbours)
+	neighbours = Filter(vst.CanVisit, neighbours)
 
 	count := 0
 	for _, neighbour := range neighbours {
-		visitedCopy := make(map[Vertex]int)
-		for k, v := range visited {
-			visitedCopy[k] = v
-		}
-		count += g.countPaths(neighbour, to, visitedCopy)
+		count += g.countPaths(neighbour, to, vst.Copy())
 	}
 	//	fmt.Printf("[%s -> %s]: neighbours [%s] returning %d\n", from, to, neighbours, count)
 	return count
@@ -123,7 +168,9 @@ func (d *Day12) Run(out io.Writer, lines []string) error {
 	fmt.Fprintf(out, "Edges: %v\n", edges)
 	g := NewGraphFromEdges(edges)
 	fmt.Fprintf(out, "G:\n%v\n", g)
-	numPaths := g.CountPaths("start", "end")
+	numPaths := g.CountPathsPart1("start", "end")
+	fmt.Fprintf(out, "Num paths: %d\n", numPaths)
+	numPaths = g.CountPathsPart2("start", "end")
 	fmt.Fprintf(out, "Num paths: %d\n", numPaths)
 	return nil
 }
