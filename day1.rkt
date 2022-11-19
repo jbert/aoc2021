@@ -23,3 +23,4 @@
                         (- a b)))
 (displayln (format "Number of window increases: ~s"
                    (length (filter negative? window-deltas))))
+

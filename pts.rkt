@@ -3,12 +3,30 @@
  (struct-out p)
  p-parse
  p-neighbours
+ p-add
+ p-sub
+
+ (struct-out p3)
+ p3-add
+ p3-sub
+ p3->list
+ list->p3
+ string->p3
+ p3-sqlen
  
  (struct-out ls)
  ls-parse
  ls-points
  ls-horiz?
- ls-vert?)
+ ls-vert?
+
+ (struct-out rect)
+ rect-xrange
+ rect-xmax
+ rect-ymin
+ rect-ymax
+ rect-within?
+ )
 
 ; ----------
 (struct p (x y) #:transparent)
@@ -88,10 +106,7 @@
     (if (< (p-x f) (p-x t))
         (helper f t)
         (helper t f))))
-    
 
-
-  
 (define (ls-points ls)
   (if (ls-horiz? ls)
       (ls-horiz-points ls)
@@ -101,3 +116,49 @@
               (ls-diag-points ls)
               (error (format "ls [~a] not horiz, vert or diag" ls))))))
 
+; -------------------
+
+(struct rect (bl tr) #:transparent)
+
+(define (rect-xrange r)
+  (cons (p-x (rect-bl r))
+        (p-x (rect-tr r))))
+
+(define (rect-within? r pt)
+  (let ([bl (rect-bl r)]
+        [tr (rect-tr r)])
+  (and (<= (p-x bl) (p-x pt) (p-x tr))
+       (<= (p-y bl) (p-y pt) (p-y tr)))))
+
+(define (rect-xmax r)
+  (p-x (rect-tr r)))
+
+(define (rect-ymin r)
+  (p-y (rect-bl r)))
+
+(define (rect-ymax r)
+  (p-y (rect-tr r)))
+
+; ----------
+
+(struct p3 (x y z) #:transparent)
+
+(define (p3->list p)
+  (list (p3-x p) (p3-y p) (p3-z p)))
+
+(define (list->p3 l)
+  (p3 (first l) (second l) (third l)))
+
+(define (string->p3 s)
+  (let ([bits (string-split s ",")])
+    (list->p3 (map string->number bits))))
+         
+
+(define (p3-add a b)
+  (list->p3 (map + (p3->list a) (p3->list b))))
+
+(define (p3-sub a b)
+  (list->p3 (map - (p3->list a) (p3->list b))))
+
+(define (p3-sqlen a)
+  (apply + (map (lambda (x) (* x x)) (p3->list a))))

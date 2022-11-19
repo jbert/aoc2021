@@ -1,6 +1,7 @@
 #lang racket
 (provide
  aoc-get-lines
+ aoc-get-stream
  aoc-get-nums
  aoc-set-day
  aoc-set-test
@@ -12,6 +13,7 @@
  count-add
 
  list-nth
+ list-partitionf
  
  half-cartesian-product
  )
@@ -32,9 +34,13 @@
   (let ([current (hash-ref h k 0)])
     (hash-set h k (+ current v))))
 
+(define (input-filename)
+  (format "~a/data/day~a~a.txt" work-dir day suffix))
 (define (aoc-get-lines)
-  (let ([data-filename (format "~a/data/day~a~a.txt" work-dir day suffix)])
-    (file->lines data-filename)))
+  (file->lines (input-filename)))
+
+(define (aoc-get-stream)
+  (open-input-file (input-filename)))
 
 (define (aoc-get-nums)
   (map string->number (aoc-get-lines)))
@@ -64,6 +70,16 @@
       (if (= n 0)
           (first l)
           (list-nth (rest l) (sub1 n)))))
+
+(define (list-partitionf l pred)
+;  (printf "l ~v pred ~v\n" l pred)
+  (define-values (f r) (splitf-at l (lambda (x) (not (pred x)))))
+;  (printf "f ~v r ~v\n" f r)
+  (if (empty? f)
+      r
+      (if (empty? r)
+          (list f)
+          (cons f (list-partitionf (rest r) pred)))))
 
 (define (half-cartesian-product l)
   (define (helper a l)

@@ -1,5 +1,10 @@
 package aoc
 
+import (
+	"fmt"
+	"strings"
+)
+
 func Map[A any, B any](f func(A) B, as []A) []B {
 	bs := make([]B, len(as))
 	for i := range as {
@@ -22,6 +27,26 @@ type Set[T comparable] map[T]struct{}
 
 func NewSet[T comparable]() Set[T] {
 	return make(map[T]struct{})
+}
+
+func (s Set[T]) ForEach(f func(T)) {
+	for k, _ := range s {
+		f(k)
+	}
+}
+
+func (s Set[T]) String() string {
+	b := &strings.Builder{}
+	first := true
+	s.ForEach(func(e T) {
+		if first {
+			first = false
+		} else {
+			fmt.Fprintf(b, ", ")
+		}
+		fmt.Fprintf(b, "%v", e)
+	})
+	return b.String()
 }
 
 func (s Set[T]) Contains(a T) bool {
