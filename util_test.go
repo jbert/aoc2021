@@ -1,6 +1,7 @@
 package aoc
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,6 +18,9 @@ func TestSet(t *testing.T) {
 	xs := []int{1, 3, 5, 8}
 	x := SetFromList(xs)
 	a.Equal(x.Size(), len(xs), "Set same length as list")
+	l := x.ToList()
+	sort.Ints(l)
+	a.Equal(l, xs, "ToList gives the right list")
 
 	x.InsertList(xs)
 	a.Equal(x.Size(), len(xs), "Inserting same list twice doesn't change set")

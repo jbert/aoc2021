@@ -116,7 +116,7 @@ func (s Set[T]) IsEmpty() bool {
 }
 
 func (s Set[T]) ToList() []T {
-	l := make([]T, s.Size())
+	l := make([]T, 0)
 	for k, _ := range s {
 		l = append(l, k)
 	}
