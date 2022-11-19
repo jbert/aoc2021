@@ -18,7 +18,7 @@ func Run(day int, test bool, out io.Writer) error {
 
 	d, err := intToDay(day)
 	if err != nil {
-		return nil
+		return err
 	}
 	err = d.Run(out, lines)
 	if err != nil {
