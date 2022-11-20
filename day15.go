@@ -98,8 +98,14 @@ func (g Grid) Lookup(p Pos) int {
 
 func (g Grid) PathRisk(path []Pos) int {
 	risk := 0
+	// Don't count first
+	first := true
 	for _, p := range path {
-		risk += g.Lookup(p)
+		if !first {
+			risk += g.Lookup(p)
+		} else {
+			first = false
+		}
 	}
 	return risk
 }
