@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/jbert/aoc2021/fun"
-	"github.com/jbert/aoc2021/set"
+	"github.com/jbert/aoc2021/graph"
 )
 
 type Day12 struct{}
@@ -18,28 +18,6 @@ func (v Vertex) IsSmall() bool {
 		panic("Empty string vertex")
 	}
 	return string(v) == strings.ToLower(string(v))
-}
-
-type Edge struct {
-	a, b Vertex
-}
-
-func (e Edge) String() string {
-	return fmt.Sprintf("%s - %s", e.a, e.b)
-}
-
-func (e Edge) Reverse() Edge {
-	return Edge{e.b, e.a}
-}
-
-type Graph map[Vertex]set.Set[Vertex]
-
-func (g Graph) String() string {
-	b := &strings.Builder{}
-	for v, s := range g {
-		fmt.Fprintf(b, "%s:\t%s\n", v, s)
-	}
-	return b.String()
 }
 
 type Visited struct {
@@ -85,27 +63,27 @@ func (vst Visited) CanVisit(v Vertex) bool {
 	return true
 }
 
-func (g Graph) CountPathsPart1(from, to Vertex) int {
+func CountPathsPart1(g *graph.Graph[Vertex], from, to Vertex) int {
 	if !g.IsVertex(from) || !g.IsVertex(to) {
 		panic(fmt.Sprintf("Internal error: [%s] or [%s] not a vertex", from, to))
 	}
 
 	vst := NewVisited(1)
 
-	return g.countPaths(from, to, vst)
+	return countPaths(g, from, to, vst)
 }
 
-func (g Graph) CountPathsPart2(from, to Vertex) int {
+func CountPathsPart2(g *graph.Graph[Vertex], from, to Vertex) int {
 	if !g.IsVertex(from) || !g.IsVertex(to) {
 		panic(fmt.Sprintf("Internal error: [%s] or [%s] not a vertex", from, to))
 	}
 
 	vst := NewVisited(2)
 
-	return g.countPaths(from, to, vst)
+	return countPaths(g, from, to, vst)
 }
 
-func (g Graph) countPaths(from, to Vertex, vst *Visited) int {
+func countPaths(g *graph.Graph[Vertex], from, to Vertex, vst *Visited) int {
 	if from == to {
 		return 1
 	}
@@ -117,45 +95,18 @@ func (g Graph) countPaths(from, to Vertex, vst *Visited) int {
 
 	count := 0
 	for _, neighbour := range neighbours {
-		count += g.countPaths(neighbour, to, vst.Copy())
+		count += countPaths(g, neighbour, to, vst.Copy())
 	}
 	//	fmt.Printf("[%s -> %s]: neighbours [%s] returning %d\n", from, to, neighbours, count)
 	return count
 }
 
-func NewGraphFromEdges(edges []Edge) *Graph {
-	g := Graph{}
-	for _, edge := range edges {
-		g.addEdge(edge)
-		g.addEdge(edge.Reverse())
-	}
-	return &g
-}
-
-func (g Graph) Neighbours(v Vertex) []Vertex {
-	return g[v].ToList()
-}
-
-func (g Graph) IsVertex(v Vertex) bool {
-	_, ok := g[v]
-	return ok
-}
-
-func (g Graph) addEdge(e Edge) {
-	s, ok := g[e.a]
-	if !ok {
-		s = set.New[Vertex]()
-	}
-	s.Insert(e.b)
-	g[e.a] = s
-}
-
-func lineToEdge(line string) Edge {
+func lineToEdge(line string) graph.Edge[Vertex] {
 	bits := strings.Split(line, "-")
 	if len(bits) != 2 {
 		panic(fmt.Sprintf("Bad edge-line [%s]", line))
 	}
-	return Edge{Vertex(bits[0]), Vertex(bits[1])}
+	return graph.Edge[Vertex]{From: Vertex(bits[0]), To: Vertex(bits[1])}
 }
 
 func NewDay12() *Day12 {
@@ -167,11 +118,11 @@ func (d *Day12) Run(out io.Writer, lines []string) error {
 	fmt.Fprintf(out, "Running\n")
 	edges := fun.Map(lineToEdge, lines)
 	fmt.Fprintf(out, "Edges: %v\n", edges)
-	g := NewGraphFromEdges(edges)
+	g := graph.NewFromEdges(edges, true)
 	fmt.Fprintf(out, "G:\n%v\n", g)
-	numPaths := g.CountPathsPart1("start", "end")
+	numPaths := CountPathsPart1(g, "start", "end")
 	fmt.Fprintf(out, "Num paths: %d\n", numPaths)
-	numPaths = g.CountPathsPart2("start", "end")
+	numPaths = CountPathsPart2(g, "start", "end")
 	fmt.Fprintf(out, "Num paths: %d\n", numPaths)
 	return nil
 }
