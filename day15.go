@@ -22,7 +22,40 @@ func (d *Day15) Run(out io.Writer, lines []string) error {
 	fmt.Printf("Grid:\n%v\n", grid)
 	lowestRisk := grid.LowestRisk()
 	fmt.Printf("Lowest risk: %d\n", lowestRisk)
+
+	expandedGrid := expandGrid(grid)
+	//	fmt.Printf("Grid:\n%v\n", expandedGrid)
+	//	for y := range expandedGrid {
+	//		fmt.Printf("%d", expandedGrid[y][expandedGrid.Width()-1])
+	//	}
+	//	fmt.Printf("\n")
+	lowestRisk = expandedGrid.LowestRisk()
+	fmt.Printf("Lowest risk: %d\n", lowestRisk)
+
 	return nil
+}
+
+func expandGrid(grid Grid) Grid {
+	eGrid := make([][]int, len(grid)*5)
+	for y, row := range grid {
+		for j := 0; j < 5; j++ {
+			eGrid[y+j*grid.Height()] = make([]int, grid.Width()*5)
+		}
+		for x, risk := range row {
+			for i := 0; i < 5; i++ {
+				ex := x + grid.Width()*i
+				for j := 0; j < 5; j++ {
+					ey := y + grid.Height()*j
+					eRisk := risk + i + j
+					for eRisk > 9 {
+						eRisk -= 9
+					}
+					eGrid[ey][ex] = eRisk
+				}
+			}
+		}
+	}
+	return eGrid
 }
 
 type Grid [][]int
