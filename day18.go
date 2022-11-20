@@ -27,7 +27,33 @@ func (d *Day18) Run(out io.Writer, lines []string) error {
 		total = total.Add(snum)
 	}
 	fmt.Printf("Magnitude: %d\n", total.Magnitude())
+
+	linePairs := AllPairs(lines)
+	maxMag := 0
+	for _, linePair := range linePairs {
+		a := lineToSnum(linePair[0])
+		b := lineToSnum(linePair[1])
+		total = a.Add(b)
+		mag := total.Magnitude()
+		fmt.Printf("%s + %s = %d\n", linePair[0], linePair[1], mag)
+		if mag > maxMag {
+			maxMag = mag
+		}
+	}
+	fmt.Printf("Max Magnitude: %d\n", maxMag)
+
 	return nil
+}
+
+func AllPairs[T any](ts []T) [][]T {
+	var pairs [][]T
+	for i := range ts {
+		for j := range ts[i:] {
+			pairs = append(pairs, []T{ts[i], ts[j]})
+			pairs = append(pairs, []T{ts[j], ts[i]})
+		}
+	}
+	return pairs
 }
 
 // No sum types in go
