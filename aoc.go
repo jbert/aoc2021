@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"strings"
+
+	"github.com/jbert/aoc2021/fun"
 )
 
 type Day interface {
@@ -49,7 +51,7 @@ func GetLines(day int, test bool) []string {
 		log.Fatalf("Can't read data file [%s]: %s", fname, err)
 	}
 	lines := strings.Split(string(buf), "\n")
-	return Filter(func(s string) bool { return s != "" }, lines)
+	return fun.Filter(func(s string) bool { return s != "" }, lines)
 }
 
 func dataFileName(day int, test bool) string {

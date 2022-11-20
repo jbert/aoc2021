@@ -5,6 +5,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/jbert/aoc2021/fun"
 	"github.com/jbert/aoc2021/set"
 )
 
@@ -112,7 +113,7 @@ func (g Graph) countPaths(from, to Vertex, vst *Visited) int {
 	vst.Visit(from)
 
 	neighbours := g.Neighbours(from)
-	neighbours = Filter(vst.CanVisit, neighbours)
+	neighbours = fun.Filter(vst.CanVisit, neighbours)
 
 	count := 0
 	for _, neighbour := range neighbours {
@@ -164,7 +165,7 @@ func NewDay12() *Day12 {
 
 func (d *Day12) Run(out io.Writer, lines []string) error {
 	fmt.Fprintf(out, "Running\n")
-	edges := Map(lineToEdge, lines)
+	edges := fun.Map(lineToEdge, lines)
 	fmt.Fprintf(out, "Edges: %v\n", edges)
 	g := NewGraphFromEdges(edges)
 	fmt.Fprintf(out, "G:\n%v\n", g)
