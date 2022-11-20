@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jbert/aoc2021/fun"
 	"github.com/jbert/aoc2021/set"
 )
 
@@ -21,7 +22,7 @@ func (e Edge[V]) Reverse() Edge[V] {
 	return Edge[V]{From: e.To, To: e.From}
 }
 
-type Graph[V comparable] map[V]set.Set[V]
+type Graph[V comparable] map[V]set.Set[Edge[V]]
 
 func (g Graph[V]) String() string {
 	b := &strings.Builder{}
@@ -45,17 +46,37 @@ func NewFromEdges[V comparable](edges []Edge[V], undirected bool) *Graph[V] {
 func (g Graph[V]) addEdge(e Edge[V]) {
 	s, ok := g[e.From]
 	if !ok {
-		s = set.New[V]()
+		s = set.New[Edge[V]]()
 	}
-	s.Insert(e.To)
+	s.Insert(e)
 	g[e.From] = s
 }
 
 func (g Graph[V]) Neighbours(v V) []V {
-	return g[v].ToList()
+	edges := g[v].ToList()
+	return fun.Map(func(e Edge[V]) V { return e.To }, edges)
 }
 
 func (g Graph[V]) IsVertex(v V) bool {
 	_, ok := g[v]
 	return ok
+}
+
+func (g Graph[V]) Weight(from, to V) float64 {
+	s, ok := g[from]
+	if !ok {
+		panic(fmt.Sprintf("Request for weight of non-existent edge from [%v]", from))
+	}
+	var weight float64
+	weightFound := false
+	s.ForEach(func(e Edge[V]) {
+		if e.To == to {
+			weight = e.Weight
+			weightFound = true
+		}
+	})
+	if !weightFound {
+		panic(fmt.Sprintf("Request for weight of non-existent edge to [%v]", to))
+	}
+	return weight
 }
