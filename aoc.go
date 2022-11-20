@@ -38,6 +38,8 @@ func intToDay(day int) (Day, error) {
 		d = NewDay12()
 	case 15:
 		d = NewDay15()
+	case 18:
+		d = NewDay18()
 	default:
 		return nil, fmt.Errorf("Unknown day [%d]", day)
 	}
