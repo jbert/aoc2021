@@ -9,6 +9,7 @@ import (
 
 func TestAstar(t *testing.T) {
 	a := assert.New(t)
+	// We should find the path which goes through 3, not through 2
 	edges := []graph.Edge[int]{
 		{1, 2, 2.0},
 		{1, 3, 1.0},
