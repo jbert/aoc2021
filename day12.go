@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/jbert/aoc2021/set"
 )
 
 type Day12 struct{}
@@ -29,9 +31,7 @@ func (e Edge) Reverse() Edge {
 	return Edge{e.b, e.a}
 }
 
-//type VertexSet Set[Vertex]
-
-type Graph map[Vertex]Set[Vertex]
+type Graph map[Vertex]set.Set[Vertex]
 
 func (g Graph) String() string {
 	b := &strings.Builder{}
@@ -143,7 +143,7 @@ func (g Graph) IsVertex(v Vertex) bool {
 func (g Graph) addEdge(e Edge) {
 	s, ok := g[e.a]
 	if !ok {
-		s = NewSet[Vertex]()
+		s = set.New[Vertex]()
 	}
 	s.Insert(e.b)
 	g[e.a] = s
