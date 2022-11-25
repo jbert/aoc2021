@@ -31,6 +31,14 @@ func (s Set[T]) String() string {
 	return b.String()
 }
 
+func Map[T, U comparable](s Set[T], f func(T) U) Set[U] {
+	m := New[U]()
+	s.ForEach(func(e T) {
+		m.Insert(f(e))
+	})
+	return m
+}
+
 func (s Set[T]) Contains(a T) bool {
 	_, ok := s[a]
 	return ok
