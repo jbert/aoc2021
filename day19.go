@@ -27,11 +27,13 @@ func (d *Day19) Run(out io.Writer, lines []string) error {
 		fmt.Fprintf(out, "%s\n", scanner)
 		//		fmt.Fprintf(out, "%d lines left\n", len(lines))
 	}
-	// Want 12 beacons overlap, that's 12*11/2=66 same distances
 	for i, a := range scanners {
 		for _, b := range scanners[i+1:] {
 			intersects := a.Dists().Intersect(b.Dists())
-			fmt.Printf("%d - %d: %d int %d\n", a.id, b.id, a.Dists().Size(), intersects.Size())
+			// Want 12 beacons overlap, that's 12*11/2=66 same distances
+			if intersects.Size() > 12*11/2 {
+				fmt.Printf("%d - %d: %d int %d\n", a.id, b.id, a.Dists().Size(), intersects.Size())
+			}
 			if a.ScanOverlap(b) {
 				fmt.Printf("%d:%d - Found overlap\n", a.id, b.id)
 			}
@@ -78,6 +80,7 @@ func (s *Scanner) ScanOverlap(t *Scanner) bool {
 	for _, sbs := range s.BeaconSets() {
 		for _, tbs := range t.BeaconSets() {
 			intersect := sbs.Deltas().Set.Intersect(tbs.Deltas().Set)
+			fmt.Printf("SO %d - %d: int %d\n", s.id, t.id, intersect.Size())
 			if intersect.Size() >= 12*11/2 {
 				return true
 			}
@@ -142,21 +145,14 @@ LINES:
 	return s, lines[i+1:]
 }
 
-var rotations = makeRotations()
+type Rot func(pts.P3) pts.P3
 
-func makeRotations() []func(pts.P3) pts.P3 {
-	// 6 directions, 4 orientations
-
-	id := func(a pts.P3) pts.P3 { return a }
-	rotX := func(a pts.P3) pts.P3 { return pts.P3{a.X, -a.Z, a.Y} }
-	rotY := func(a pts.P3) pts.P3 { return pts.P3{-a.Z, a.Y, a.X} }
-	rotZ := func(a pts.P3) pts.P3 { return pts.P3{-a.Y, a.X, a.Z} }
-
-	// Put each of the 6 directions (x, -x, y, -y, z, -z) in the +x dir
-	// then have the 4 rotations of that
-
-	// Composing will be useful
-	c := func(fs ...func(pts.P3) pts.P3) func(pts.P3) pts.P3 {
+var (
+	id   = func(a pts.P3) pts.P3 { return a }
+	rotX = func(a pts.P3) pts.P3 { return pts.P3{a.X, -a.Z, a.Y} }
+	rotY = func(a pts.P3) pts.P3 { return pts.P3{a.Z, a.Y, -a.X} }
+	rotZ = func(a pts.P3) pts.P3 { return pts.P3{-a.Y, a.X, a.Z} }
+	c    = func(fs ...func(pts.P3) pts.P3) func(pts.P3) pts.P3 {
 		return func(a pts.P3) pts.P3 {
 			for _, f := range fun.Reverse(fs) {
 				a = f(a)
@@ -164,15 +160,14 @@ func makeRotations() []func(pts.P3) pts.P3 {
 			return a
 		}
 	}
-
-	xRots := []func(pts.P3) pts.P3{
+	xRots = []func(pts.P3) pts.P3{
 		id,
 		rotX,
 		c(rotX, rotX),
 		c(rotX, rotX, rotX),
 	}
 
-	sixDirs := []func(pts.P3) pts.P3{
+	sixDirs = []func(pts.P3) pts.P3{
 		id,                  // +x
 		c(rotX, rotX),       // -x
 		rotZ,                // +y
@@ -180,11 +175,20 @@ func makeRotations() []func(pts.P3) pts.P3 {
 		rotY,                // +z
 		c(rotY, rotY, rotY), // -z
 	}
+)
+
+var rotations = makeRotations()
+
+func makeRotations() []func(pts.P3) pts.P3 {
+	// 6 directions, 4 orientations
+
+	// Put each of the 6 directions (x, -x, y, -y, z, -z) in the +x dir
+	// then have the 4 rotations of that
 
 	var perms []func(pts.P3) pts.P3
 	for _, xrot := range xRots {
 		for _, dir := range sixDirs {
-			perms = append(perms, c(dir, xrot))
+			perms = append(perms, c(xrot, dir))
 		}
 	}
 

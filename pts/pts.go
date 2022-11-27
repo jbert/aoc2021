@@ -68,3 +68,16 @@ func (p P3) Sub(q P3) P3 {
 		Z: p.Z - q.Z,
 	}
 }
+
+func (p P3) Less(q P3) bool {
+	if p.X < q.X {
+		return true
+	}
+	if p.Y < q.Y {
+		return true
+	}
+	if p.Z < q.Z {
+		return true
+	}
+	return false
+}
