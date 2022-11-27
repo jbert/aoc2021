@@ -169,7 +169,7 @@ var (
 
 	sixDirs = []func(pts.P3) pts.P3{
 		id,                  // +x
-		c(rotX, rotX),       // -x
+		c(rotZ, rotZ),       // -x
 		rotZ,                // +y
 		c(rotZ, rotZ, rotZ), // -y
 		rotY,                // +z
@@ -188,7 +188,10 @@ func makeRotations() []func(pts.P3) pts.P3 {
 	var perms []func(pts.P3) pts.P3
 	for _, xrot := range xRots {
 		for _, dir := range sixDirs {
-			perms = append(perms, c(xrot, dir))
+			perm := c(xrot, dir)
+			//			p := pts.P3{1, 2, 3}
+			//			fmt.Printf("%d,%d p -> %s\n", i, j, perm(p))
+			perms = append(perms, perm)
 		}
 	}
 
