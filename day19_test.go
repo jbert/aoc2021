@@ -31,8 +31,13 @@ func TestScannerRotations(t *testing.T) {
 		})
 		fmt.Printf("%v\n", bsl)
 		strs.Insert(fmt.Sprintf("%v", bsl))
+		t.Logf("BS deltas:\n%v", bs.Deltas())
 	}
 	a.Equal(24, strs.Size(), "24 distinct sets of pts")
+
+	//	u, _ := readScanner([]string{
+	//		"--- scanner 6 ---", "1,0,0", "0,2,0", "0,0,4",
+	//	})
 }
 
 func TestBaseRotations(t *testing.T) {

@@ -27,15 +27,22 @@ func (d *Day19) Run(out io.Writer, lines []string) error {
 		fmt.Fprintf(out, "%s\n", scanner)
 		//		fmt.Fprintf(out, "%d lines left\n", len(lines))
 	}
+	scanners[0].known = true
+	scanners[0].iRot = 0
+	scanners[0].location = pts.P3{0, 0, 0}
+
+	beacons := scanners[0].beacons.Set
+
 	for i, a := range scanners {
 		for _, b := range scanners[i+1:] {
-			intersects := a.Dists().Intersect(b.Dists())
+			// intersects := a.Dists().Intersect(b.Dists())
 			// Want 12 beacons overlap, that's 12*11/2=66 same distances
-			if intersects.Size() > 12*11/2 {
-				fmt.Printf("%d - %d: %d int %d\n", a.id, b.id, a.Dists().Size(), intersects.Size())
-			}
-			if a.ScanOverlap(b) {
-				fmt.Printf("%d:%d - Found overlap\n", a.id, b.id)
+			//			if intersects.Size() > 12*11/2 {
+			//				fmt.Printf("%d - %d: %d int %d\n", a.id, b.id, a.Dists().Size(), intersects.Size())
+			//			}
+			if ii, jj, ok := a.ScanOverlap(b); ok {
+				fmt.Printf("%d:%d - Found overlap for i %d j %d\n", a.id, b.id, ii, jj)
+				b.SetLocationOrientation(a, ii, jj)
 			}
 		}
 	}
@@ -48,6 +55,7 @@ type Scanner struct {
 
 	known    bool
 	location pts.P3
+	iRot     int
 }
 
 type BSet struct {
@@ -59,11 +67,11 @@ func NewBSet() BSet {
 }
 
 func (bs *BSet) Deltas() BSet {
-	l := bs.ToList()
+	bsl := bs.ToList()
 
 	ds := NewBSet()
-	for i, a := range l {
-		for _, b := range l[i+1:] {
+	for _, a := range bsl {
+		for _, b := range bsl {
 			d := a.Sub(b)
 			ds.Insert(d)
 			//			fmt.Printf("%s - %s = %s\n", a, b, d)
@@ -76,17 +84,18 @@ func (s *Scanner) Dists() set.Set[int] {
 	return set.Map(s.beacons.Deltas().Set, func(p pts.P3) int { return p.ManhattanLength() })
 }
 
-func (s *Scanner) ScanOverlap(t *Scanner) bool {
-	for _, sbs := range s.BeaconSets() {
-		for _, tbs := range t.BeaconSets() {
+func (s *Scanner) ScanOverlap(t *Scanner) (int, int, bool) {
+	for i, sbs := range s.BeaconSets() {
+		for j, tbs := range t.BeaconSets() {
 			intersect := sbs.Deltas().Set.Intersect(tbs.Deltas().Set)
-			fmt.Printf("SO %d - %d: int %d\n", s.id, t.id, intersect.Size())
+			//			fmt.Printf("SO %d - %d: (%d) int %d\n", s.id, t.id, sbs.Deltas().Set.Size(), intersect.Size())
+			//			fmt.Printf("SO %d - %d: (%d) int %d\n", s.id, t.id, sbs.Deltas().Set.Size(), intersect.Size())
 			if intersect.Size() >= 12*11/2 {
-				return true
+				return i, j, true
 			}
 		}
 	}
-	return false
+	return 0, 0, false
 }
 
 func (s *Scanner) BeaconSets() []BSet {
